@@ -163,8 +163,8 @@ class CPatientDB:
 
     def calculate_range( # 로봇-환자 간 실제 수평거리 계산
             self,
-            marker_id: str,
-            depth_cm: float
+            marker_id: str, # 마커 ID
+            depth_cm: float # ZED depth로 얻은 마커까지의 거리 (cm)
     ):
         """
         ZED depth로 얻은 마커까지의 거리(depth_cm)를 기반으로
@@ -176,16 +176,16 @@ class CPatientDB:
             REAL_DISTANCE = sqrt(Depth^2 - (IV_HEIGHT - P_HEIGHT + GAP)^2)
         """
 
-        marker_id = str(marker_id).strip()
+        marker_id = str(marker_id).strip() # marker_id 문자열로 변환 후 양쪽 공백 제거
 
-        patient = self.get_patient_info(marker_id)
+        patient = self.get_patient_info(marker_id) # marker_id로 환자 정보 조회
 
         if patient is None:
-            return self._last_distance_cm
+            return self._last_distance_cm # 환자 정보가 없으면 마지막 계산된 거리 반환
 
-        patient_height = patient.get("height", None)
+        patient_height = patient.get("height", None) # 환자 신장 정보 추출
 
-        if patient_height is None:
+        if patient_height is None: # 환자 신장 정보가 없으면 로그 남기고 마지막 계산된 거리 반환
             write_log(
                 "height is None for marker_id=%s" % marker_id,
                 self

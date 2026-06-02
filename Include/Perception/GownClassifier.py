@@ -67,15 +67,18 @@ class CGownClassifier:
                 "Gown classifier model not found: %s" % self._model_path
             )
 
-        model = models.mobilenet_v2(pretrained=False) # MobileNetV2 모델 객체 생성, pretrained=False로 사전학습된 가중치 사용 안함
+        model = models.mobilenet_v2(pretrained=False) # MobileNetV2 모델 객체 생성, pretrained=False : ImageNet 사전학습된 가중치 사용 안함, 우리가 직접 학습한 모델이므로 pretrained=False로 설정
         model.classifier[1] = torch.nn.Linear(model.last_channel, 2) # MobileNetV2의 마지막 분류 레이어를 2 클래스 (gown vs normal)로 변경
+        # .classifier[1] : MobileNetV2 모델의 마지막 분류 레이어 (nn.Linear), model.last_channel : MobileNetV2의 마지막 특징 채널 수 (1280), 2 : 클래스 수 (gown vs normal)
 
         model.load_state_dict( # 저장된 모델 가중치 로드
             torch.load(
-                self._model_path,
-                map_location=self._device
+                self._model_path, # gown_classifier.pth
+                map_location=self._device # 모델이 저장된 디바이스와 현재 디바이스가 다를 수 있으므로, map_location을 사용하여 모델 가중치를 현재 디바이스로 로드
             )
         )
+        # .load_state_dict() : 모델 객체에 저장된 가중치를 로드하는 메서드, 예전에 학습해놓은 지식을 넣는 과정
+        # torch.load() : 저장된 모델 가중치를 로드하는 함수
 
         model.to(self._device) # 모델을 지정된 디바이스 (CPU 또는 GPU)로 이동
         model.eval() # 모델을 평가 모드로 설정

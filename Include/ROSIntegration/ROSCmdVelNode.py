@@ -12,7 +12,7 @@ from geometry_msgs.msg import Twist
 from std_msgs.msg import Float32
 
 from Commons import *
-from Control.CmdVelController import CCmdVelController
+from Control.VelocityLimiter import CVelocityLimiter
 
 
 class CROSCmdVelNode(Node):
@@ -21,8 +21,9 @@ class CROSCmdVelNode(Node):
 
     역할:
         1. /cmd_vel 토픽 생성
-        2. linear.x / angular.z publish
-        3. 필요 시 거리 평가용 토픽 publish
+        2. linear.x / angular.z 제한
+        3. 제한된 속도값 publish
+        4. 필요 시 거리 평가용 토픽 publish
     """
 
     def __init__(
@@ -53,7 +54,10 @@ class CROSCmdVelNode(Node):
             qos # QoS 설정 적용
         )
 
-        self._cmd_vel_controller = CCmdVelController() # cmd_vel 제어 객체 생성
+        self._vel_limiter = CVelocityLimiter() # cmd_vel 제한 객체 생성
+
+        self._last_linear_x = 0.0 # 마지막으로 publish한 linear.x 값, 초기값은 0.0
+        self._last_angular_z = 0.0 # 마지막으로 publish한 angular.z 값, 초기값은 0.0
 
         write_log(
             "ROSCmdVelNode started. topic=%s" % self._cmd_vel_topic,
@@ -73,16 +77,17 @@ class CROSCmdVelNode(Node):
         /cmd_vel publish
         """
 
-        self._cmd_vel_controller.set_cmd_vel(
+        linear_x, angular_z = self._vel_limiter.limit_cmd_vel(
             linear_x,
             angular_z
-        )
+        ) # 입력된 linear.x와 angular.z 값을 제한된 범위로 조정
 
-        limited_linear_x, limited_angular_z = self._cmd_vel_controller.get_cmd_vel() # 제한된 cmd_vel 값 가져오기
+        self._last_linear_x = linear_x # 제한된 linear.x 값을 마지막으로 publish한 값으로 저장
+        self._last_angular_z = angular_z # 제한된 angular.z 값을 마지막으로 publish한 값으로 저장
 
         msg = Twist() # ROS2 속도 메시지 객체 생성
-        msg.linear.x = float(limited_linear_x) # linear.x 필드에 제한된 linear_x 값 설정
-        msg.angular.z = float(limited_angular_z) # angular.z 필드에 제한된 angular_z 값 설정
+        msg.linear.x = float(linear_x) # linear.x 필드에 제한된 linear_x 값 설정
+        msg.angular.z = float(angular_z) # angular.z 필드에 제한된 angular_z 값 설정
 
         self._cmd_vel_pub.publish(msg) # /cmd_vel 토픽에 메시지 publish
 
@@ -103,17 +108,16 @@ class CROSCmdVelNode(Node):
         로봇 정지 명령 publish
         """
 
-        self._cmd_vel_controller.stop()
+        self._last_linear_x = 0.0 # 마지막으로 publish한 linear.x 값을 0.0으로 설정하여 정지 명령을 나타냄
+        self._last_angular_z = 0.0 # 마지막으로 publish한 angular.z 값을 0.0으로 설정하여 정지 명령을 나타냄
 
-        linear_x, angular_z = self._cmd_vel_controller.get_cmd_vel()
+        msg = Twist() # ROS2 속도 메시지 객체 생성
+        msg.linear.x = 0.0 # linear.x 필드에 0.0 설정하여 정지 명령을 나타냄
+        msg.angular.z = 0.0 # angular.z 필드에 0.0 설정하여 정지 명령을 나타냄
 
-        msg = Twist()
-        msg.linear.x = float(linear_x)
-        msg.angular.z = float(angular_z)
+        self._cmd_vel_pub.publish(msg) # /cmd_vel 토픽에 정지 명령 메시지 publish
 
-        self._cmd_vel_pub.publish(msg)
-
-        self.get_logger().info("cmd_vel stop published.")
+        self.get_logger().info("cmd_vel stop published.") # ROS2 logger로 정지 명령이 publish되었다는 로그 출력
 
     # ==============================================================================================================
     # Publish Distance
@@ -123,15 +127,18 @@ class CROSCmdVelNode(Node):
         """
         평가용 target distance publish
         """
+        # distance_cm : 환자와의 수평 거리 (cm 단위)
+        msg = Float32() # ROS2 Float32 메시지 객체 생성
+        msg.data = float(distance_cm) # 메시지의 data 필드에 distance_cm 값을 float으로 설정
 
-        msg = Float32()
-        msg.data = float(distance_cm)
-
-        self._distance_pub.publish(msg)
+        self._distance_pub.publish(msg) # /evaluation/target_distance 토픽에 메시지 publish
 
     # ==============================================================================================================
     # Getter
     # ==============================================================================================================
+
+    def get_last_cmd_vel(self): # 마지막으로 publish한 cmd_vel 값을 반환하는 함수
+        return self._last_linear_x, self._last_angular_z
 
     def get_cmd_vel_topic(self): # cmd_vel 토픽 이름 반환
         return self._cmd_vel_topic

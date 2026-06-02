@@ -34,7 +34,7 @@ class CZEDCameraModule:
             resolution=None, # 카메라 해상도
             fps: int = 30, # 프레임
             depth_mode=None, # depth 모드
-            coordinate_units=None, # depth 단위
+            coordinate_units=None, # depth 단위, ZED SDK에서 depth 값을 반환할 때 사용할 단위, 예: meter, millimeter, centimeter
     ):
 
         if sl is None:
@@ -42,7 +42,7 @@ class CZEDCameraModule:
                 "pyzed.sl 모듈을 찾을 수 없습니다. ZED SDK Python API 설치가 필요합니다."
             )
 
-        self._fps = fps # 저장용
+        self._fps = fps # 저장용 카메라 프레임 속도
 
         self._zed = sl.Camera() # ZED 카메라 객체 생성
 
@@ -55,12 +55,12 @@ class CZEDCameraModule:
             self._init_params.camera_resolution = resolution
 
         if depth_mode is None:
-            self._init_params.depth_mode = sl.DEPTH_MODE.NEURAL
+            self._init_params.depth_mode = sl.DEPTH_MODE.NEURAL # NEURAL : ZED SDK의 딥 러닝 기반 depth 모드, 일반적으로 더 정확한 depth 정보를 제공하지만 계산 비용이 더 높음, 다른 옵션으로는 PERFORMANCE (빠르지만 덜 정확), ULTRA (매우 정확하지만 매우 느림) 등이 있음, 프로젝트 요구 사항에 따라 적절한 depth 모드 선택 필요
         else:
             self._init_params.depth_mode = depth_mode
 
         if coordinate_units is None:
-            self._init_params.coordinate_units = sl.UNIT.METER
+            self._init_params.coordinate_units = sl.UNIT.METER # depth 값 반환 단위 m로 설정
         else:
             self._init_params.coordinate_units = coordinate_units
 
@@ -82,7 +82,7 @@ class CZEDCameraModule:
         ZED 카메라를 연다.
         """
 
-        err = self._zed.open(self._init_params)
+        err = self._zed.open(self._init_params) # err : sl.ERROR_CODE.SUCCESS이면 성공적으로 열렸음을 의미, 다른 값이면 열기에 실패
 
         if err != sl.ERROR_CODE.SUCCESS:
             write_log("ZED camera open failed: %s" % str(err), self)
@@ -116,6 +116,8 @@ class CZEDCameraModule:
             return False
 
         err = self._zed.grab(self._runtime_params)
+        # .grap() 파라미터 : RuntimeParameters 객체, grab() 메서드는 카메라에서 새로운 프레임을 가져오고, 이때 RuntimeParameters 객체를 인자로 전달하여 grab 작업에 필요한 설정을 지정할 수 있음, 우리는 기본값 사용
+        # err : sl.ERROR_CODE.SUCCESS이면 성공적으로 grab되었음을 의미, 다른 값이면 grab에 실패
 
         if err != sl.ERROR_CODE.SUCCESS:
             return False
@@ -151,7 +153,7 @@ class CZEDCameraModule:
             return None
 
         # ZED image는 보통 BGRA 형태로 들어온다.
-        if frame.shape[2] == 4:
+        if frame.shape[2] == 4: # 채널이 4개인 경우 (BGRA)
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR) # alpha 채널 제거하여 BGR로 변환
         else:
             frame_bgr = frame.copy() # 이미 BGR 형식이면 그대로 복사
@@ -195,7 +197,7 @@ class CZEDCameraModule:
         width = self._depth_mat.get_width()
         height = self._depth_mat.get_height()
 
-        if width <= 0 or height <= 0:
+        if width <= 0 or height <= 0: # depth map의 크기가 유효하지 않으면 retrieve_measure() 호출하여 depth map 업데이트
             self._zed.retrieve_measure(
                 self._depth_mat,
                 sl.MEASURE.DEPTH

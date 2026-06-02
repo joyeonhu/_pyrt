@@ -34,9 +34,9 @@ class CDoorDetector:
             yolo_model_path = os.path.join(root_path, "Data", "Models", "door_yolov8n.pt")
 
         self._yolo_model_path = yolo_model_path
-        self._door_conf = door_conf
+        self._door_conf = door_conf # 문 검출 confidence threshold
 
-        self._door_model = None
+        self._door_model = None # YOLO 모델 객체
 
         self.load_model()
 
@@ -116,15 +116,15 @@ class CDoorDetector:
         if image_bgr is None:
             return detected_doors
 
-        if image_bgr.size == 0:
+        if image_bgr.size == 0: # 이미지가 비어있는 경우 빈 결과 반환
             return detected_doors
 
-        height, width = image_bgr.shape[:2]
+        height, width = image_bgr.shape[:2] # 이미지 크기 가져오기
 
         results = self._door_model.predict(
             image_bgr,
             conf=self._door_conf,
-            verbose=False
+            verbose=False # 로그 출력하지 않도록 설정
         )
 
         for r in results:
@@ -133,6 +133,7 @@ class CDoorDetector:
 
             for b in r.boxes:
                 x1, y1, x2, y2 = map(int, b.xyxy[0].tolist())
+                # b.xyxy : 검출된 객체의 bbox 좌표 (x1, y1, x2, y2) 형태로 반환, b.xyxy[0]은 첫 번째 검출된 객체의 bbox 좌표를 가져옴, .tolist()는 텐서를 리스트로 변환, map(int, ...)는 좌표 값을 정수로 변환하여 x1, y1, x2, y2에 할당
                 x1, y1, x2, y2 = self.clamp_box(
                     x1, y1, x2, y2,
                     width,
@@ -141,7 +142,7 @@ class CDoorDetector:
 
                 conf = 0.0
                 if b.conf is not None:
-                    conf = float(b.conf[0])
+                    conf = float(b.conf[0]) # [0.92] 이렇게 텐서로 반환되므로 첫 번째 요소를 가져와서 float로 변환하여 confidence 값으로 사용
 
                 bbox = [x1, y1, x2, y2]
                 crop = self.crop_door(image_bgr, bbox)

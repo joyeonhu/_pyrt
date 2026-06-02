@@ -1,154 +1,144 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 # File Name    : MPCamera.py
 # Project Name : HealthcareRobotPyRT
-# Description  : Camera multiprocessing module
+# Description  : Camera multiprocessing routine
 # -------------------------------------------------------------------------------------------------------------------- #
 
 import time
 
 from Commons import *
 from HealthcareRobot.HealthcareMessage import *
-from MultiProcessing.MultiProcessBase import CMultiProcessBase
+from MultiProcessing.MultiProcessBase import CMD_START, CMD_STOP, CMD_EXIT
 from Perception.CameraModule import CZEDCameraModule
 
 
-class CMPCamera(CMultiProcessBase):
+def proc_camera(command_pipe, feedback_queue, feedback_queue_bk=None):
     """
-    Camera Process
+    Camera Process Routine
 
     역할:
-        1. ZED 2i 카메라 실행
-        2. frame / depth_map 획득
-        3. ControlCore로 frame packet 전송
-
-    통신:
-        Command  : ControlCore -> MPCamera, Pipe
-        Feedback : MPCamera -> ControlCore, Queue
+        1. ControlCore로부터 Pipe로 command 수신
+        2. START 명령을 받으면 ZED camera open
+        3. frame packet을 읽어서 Queue로 ControlCore에 전달
+        4. STOP / EXIT 명령을 받으면 카메라 정지 또는 프로세스 종료
     """
 
-    CMD_START_CAMERA = "START_CAMERA"
-    CMD_STOP_CAMERA = "STOP_CAMERA"
-    CMD_EXIT = "EXIT"
+    camera = None
+    is_running = True
+    is_camera_active = False
 
-    def __init__(
-            self,
-            command_pipe=None,
-            feedback_queue=None,
-            fps: int = 15
-    ):
-        super().__init__(
+    frame_interval = 1.0 / 30.0
+    last_frame_time = 0.0
+
+    write_log("MPCamera process routine started.")
+
+    try:
+        while is_running:
+
+            # ------------------------------------------------------------------------------------------------------
+            # 1. Command Receive
+            # ------------------------------------------------------------------------------------------------------
+
+            if command_pipe.poll():
+                cmd_msg = command_pipe.recv()
+
+                data = cmd_msg.get(KEY_DATA, {})
+                command = data.get(KEY_COMMAND, None)
+
+                if command == CMD_START:
+                    if camera is None:
+                        camera = CZEDCameraModule()
+
+                    if not camera.is_opened():
+                        success = camera.open()
+
+                        if success:
+                            is_camera_active = True
+
+                            status_msg = make_status_message(
+                                "CAMERA_STARTED",
+                                PROC_CAMERA,
+                                PROC_CONTROL_CORE
+                            )
+                            feedback_queue.put(status_msg)
+
+                        else:
+                            error_msg = make_error_message(
+                                "Camera open failed",
+                                PROC_CAMERA,
+                                PROC_CONTROL_CORE
+                            )
+                            feedback_queue.put(error_msg)
+
+                elif command == CMD_STOP:
+                    is_camera_active = False
+
+                    if camera is not None:
+                        camera.close()
+
+                    status_msg = make_status_message(
+                        "CAMERA_STOPPED",
+                        PROC_CAMERA,
+                        PROC_CONTROL_CORE
+                    )
+                    feedback_queue.put(status_msg)
+
+                elif command == CMD_EXIT:
+                    is_camera_active = False
+                    is_running = False
+
+            # ------------------------------------------------------------------------------------------------------
+            # 2. Camera Frame Capture
+            # ------------------------------------------------------------------------------------------------------
+
+            if is_camera_active and camera is not None:
+
+                curr_time = time.time()
+
+                if curr_time - last_frame_time >= frame_interval:
+                    last_frame_time = curr_time
+
+                    frame_packet = camera.get_frame_packet()
+
+                    if frame_packet is not None:
+                        msg = make_message(
+                            MSG_TYPE_FRAME,
+                            PROC_CAMERA,
+                            PROC_CONTROL_CORE,
+                            frame_packet
+                        )
+
+                        feedback_queue.put(msg)
+
+                    else:
+                        error_msg = make_error_message(
+                            "Failed to get camera frame",
+                            PROC_CAMERA,
+                            PROC_CONTROL_CORE
+                        )
+                        feedback_queue.put(error_msg)
+
+            time.sleep(0.001)
+
+    except Exception:
+        ErrorHandler().report()
+
+        error_msg = make_error_message(
+            "MPCamera process exception",
             PROC_CAMERA,
-            command_pipe,
-            feedback_queue
+            PROC_CONTROL_CORE
         )
+        feedback_queue.put(error_msg)
 
-        self._fps = fps
-        self._period = 1.0 / float(fps)
+    finally:
+        if camera is not None:
+            camera.close()
 
-        self._camera = None
-        self._camera_enabled = True
-
-        self._last_frame_time = 0.0
-
-    # ==============================================================================================================
-    # Start / Stop
-    # ==============================================================================================================
-
-    def on_start(self):
-        """
-        프로세스 시작 시 카메라 open
-        """
-
-        self._camera = CZEDCameraModule(
-            fps=self._fps
-        )
-
-        success = self._camera.open()
-
-        if success:
-            self.send_status("CAMERA_READY")
-        else:
-            self.send_error("CAMERA_OPEN_FAILED")
-            self.stop()
-
-    def on_stop(self):
-        """
-        프로세스 종료 시 카메라 close
-        """
-
-        if self._camera is not None:
-            self._camera.close()
-
-        self.send_status("CAMERA_STOPPED")
-
-    # ==============================================================================================================
-    # Main Loop
-    # ==============================================================================================================
-
-    def process_once(self):
-        """
-        카메라 프로세스 반복 작업
-        """
-
-        self.process_command()
-
-        if not self._camera_enabled:
-            time.sleep(0.01)
-            return
-
-        now = time.time()
-
-        if now - self._last_frame_time < self._period:
-            return
-
-        self._last_frame_time = now
-
-        frame_packet = self._camera.get_frame_packet()
-
-        if frame_packet is None:
-            return
-
-        msg = make_message(
-            MSG_TYPE_FRAME,
+        status_msg = make_status_message(
+            "CAMERA_PROCESS_TERMINATED",
             PROC_CAMERA,
-            PROC_CONTROL_CORE,
-            frame_packet
+            PROC_CONTROL_CORE
         )
+        feedback_queue.put(status_msg)
 
-        self.send_feedback(msg)
-
-    # ==============================================================================================================
-    # Command
-    # ==============================================================================================================
-
-    def process_command(self):
-        """
-        ControlCore에서 Pipe로 보낸 command 처리
-        """
-
-        command_msg = self.recv_command()
-
-        if command_msg is None:
-            return
-
-        command = self.get_command_type(command_msg)
-
-        if command == self.CMD_START_CAMERA:
-            self._camera_enabled = True
-            self.send_status("CAMERA_STARTED")
-
-        elif command == self.CMD_STOP_CAMERA:
-            self._camera_enabled = False
-            self.send_status("CAMERA_PAUSED")
-
-        elif command == self.CMD_EXIT:
-            self.send_status("CAMERA_EXIT_REQUESTED")
-            self.stop()
-
-        else:
-            self.send_status(
-                "UNKNOWN_CAMERA_COMMAND",
-                {
-                    "command": command
-                }
-            )
+        write_log("MPCamera process routine terminated.")

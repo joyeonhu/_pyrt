@@ -39,9 +39,9 @@ class CPatientDetector:
         self._yolo_model_path = yolo_model_path
         self._person_conf = person_conf
 
-        self._person_model = None
-        self._gown_classifier = CGownClassifier()
-        self._marker_detector = CMarkerDetector()
+        self._person_model = None # YOLO 모델 객체 저장
+        self._gown_classifier = CGownClassifier() # 환자복 분류기 객체 생성
+        self._marker_detector = CMarkerDetector() # ArUco 마커 검출기 객체 생성
 
         self.load_model()
 
@@ -180,8 +180,8 @@ class CPatientDetector:
                 # 2. Gown classification
                 # --------------------------------------------------------------------------------------------------
 
-                torso = self.get_torso_roi(image_bgr, bbox)
-                is_gown = self._gown_classifier.is_gown(torso)
+                torso = self.get_torso_roi(image_bgr, bbox) # 상반신 영역 crop
+                is_gown = self._gown_classifier.is_gown(torso) # 환자복 여부 판별
 
                 if not is_gown:
                     continue
@@ -190,10 +190,10 @@ class CPatientDetector:
                 # 3. Marker detection
                 # --------------------------------------------------------------------------------------------------
 
-                person_roi = self.get_person_roi(image_bgr, bbox)
+                person_roi = self.get_person_roi(image_bgr, bbox) # 사람 전체 영역 crop
 
                 scale_up = 1.0
-                if max(person_roi.shape[:2]) < 420:
+                if max(person_roi.shape[:2]) < 420: # ROI가 너무 작으면 마커 검출이 어려울 수 있으므로, ROI를 1.5배로 확대하여 마커 검출 시도
                     person_roi = cv2.resize(
                         person_roi,
                         None,
@@ -203,7 +203,7 @@ class CPatientDetector:
                     )
                     scale_up = 1.5
 
-                markers = self._marker_detector.detect(person_roi)
+                markers = self._marker_detector.detect(person_roi) # ROI에서 ArUco 마커 검출, 검출된 마커 정보는 ROI 좌표계로 반환 (id, center, corners)
 
                 for marker in markers:
                     marker_frame = self._marker_detector.roi_to_frame_coord( # ROI 좌표계에서 원본 이미지 좌표계로 변환
@@ -231,7 +231,7 @@ class CPatientDetector:
         """
         검출 결과를 화면에 표시
         """
-
+        # patients : detect() 메서드에서 반환된 환자 검출 결과 리스트, 각 요소는 환자 정보 딕셔너리 (bbox, is_gown, marker_id, marker_center, marker_corners)
         for patient in patients:
             x1, y1, x2, y2 = patient["bbox"]
 

@@ -117,7 +117,7 @@ class CMarkerDetector:
 
     @staticmethod
     def draw_marker( # 이미지 위에 마커 테두리와 중심점을 표시
-            image_bgr: np.ndarray,
+            image_bgr: np.ndarray, # 원본 프레임 이미지 (BGR, OpenCV format)
             marker_info: dict,
             color=(0, 255, 255), # 마커 테두리와 중심점 색상 (BGR, 여기서는 노란색)
             thickness: int = 2
