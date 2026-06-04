@@ -206,9 +206,6 @@ class CMultiProcessBase:
             )
 
         try:
-            while not self.pipeParent.writable: # pipe가 쓰기 가능한 상태인지 기다림
-                time.sleep(0.001)
-
             self.pipeParent.send(msg) # pipe로 command 메시지 보냄
             return True
 
