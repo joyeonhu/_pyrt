@@ -62,67 +62,67 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
 
                     status_msg = make_status_message( # ROS 준비됐다는 상태 메시지 생성
                         "HEALTHCARE_ROS_READY",
-                        PROC_HEALTHCARE_ROS,
+                        PROC_HEALTHCARE,
                         PROC_CONTROL_CORE
                     )
                     feedback_queue.put(status_msg) # 상태 메시지를 ControlCore로 보냄
 
-                elif command == CMD_PROCESS_FOLLOW: #
-                    if not is_ros_ready or ros_node is None:
+                elif command == CMD_PROCESS_FOLLOW: # FOLLOW 명령, 카메라 프레임과 depth map을 받아서 FOLLOW 처리 수행 (예: 사람 인식 및 추적), 결과는 Nav2로 이동 명령으로 변환되어 ROSHealthcareNode에서 처리
+                    if not is_ros_ready or ros_node is None: # ROS가 준비되지 않았거나 ROSHealthcareNode 객체가 생성되지 않았다면 에러 메시지 보내고 명령 처리 건너뜀
                         feedback_queue.put(
                             make_error_message(
                                 "Healthcare ROS is not ready",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
                         continue
 
-                    frame_bgr = data.get(KEY_FRAME, None)
-                    depth_map = data.get("depth_map", None)
+                    frame_bgr = data.get(KEY_FRAME, None) # data에서 카메라 프레임을 꺼냄
+                    depth_map = data.get("depth_map", None) # data에서 depth map을 꺼냄
 
-                    if frame_bgr is None:
+                    if frame_bgr is None: # 프레임이 없으면 에러 메시지 보내고 명령 처리 건너뜀
                         feedback_queue.put(
                             make_status_message(
                                 "FOLLOW_NO_FRAME",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
                         continue
 
-                    ros_node.process_follow(
+                    ros_node.process_follow( # ROSHealthcareNode의 process_follow 함수 호출하여 FOLLOW 처리 수행, 이 함수는 카메라 프레임과 depth map을 받아서 사람 인식 및 추적을 수행하고, 결과를 Nav2로 이동 명령으로 변환하여 ROSHealthcareNode에서 처리
                         frame_bgr,
                         depth_map
                     )
 
-                    feedback_queue.put(
+                    feedback_queue.put( # FOLLOW 처리 완료 메시지 보내기
                         make_status_message(
                             "FOLLOW_PROCESSED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE
                         )
                     )
 
-                elif command == CMD_START_GUIDE:
-                    if not is_ros_ready or ros_node is None:
+                elif command == CMD_START_GUIDE: # GUIDE 명령, 목적지 ID를 받아서 해당 위치로 이동 시작
+                    if not is_ros_ready or ros_node is None: # ROS가 준비되지 않았거나 ROSHealthcareNode 객체가 생성되지 않았다면 에러 메시지 보내고 명령 처리 건너뜀
                         feedback_queue.put(
                             make_error_message(
                                 "Healthcare ROS is not ready",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
                         continue
 
-                    destination_id = data.get("destination_id", None)
+                    destination_id = data.get("destination_id", None) # data에서 목적지 ID를 꺼냄
 
-                    success = ros_node.go_to_destination(destination_id)
+                    success = ros_node.go_to_destination(destination_id) # ROSHealthcareNode의 go_to_destination 함수 호출하여 네비게이션 시작, 이 함수는 목적지 ID를 받아서 해당 위치로 이동을 시작하고, 성공 여부를 반환
 
-                    feedback_queue.put(
+                    feedback_queue.put( # GUIDE 시작 결과 메시지 보내기
                         make_status_message(
                             "GUIDE_STARTED" if success else "GUIDE_START_FAILED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE,
                             {
                                 "destination_id": destination_id
@@ -130,25 +130,25 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                         )
                     )
 
-                elif command == CMD_START_DELIVERY:
-                    if not is_ros_ready or ros_node is None:
+                elif command == CMD_START_DELIVERY: # DELIVERY 명령, 목적지 ID를 받아서 해당 위치로 이동 시작, GUIDE와 동일하게 처리하지만 메시지 내용이 다름
+                    if not is_ros_ready or ros_node is None: # ROS가 준비되지 않았거나 ROSHealthcareNode 객체가 생성되지 않았다면 에러 메시지 보내고 명령 처리 건너뜀
                         feedback_queue.put(
                             make_error_message(
                                 "Healthcare ROS is not ready",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
                         continue
 
-                    destination_id = data.get("destination_id", None)
+                    destination_id = data.get("destination_id", None) #
 
                     success = ros_node.go_to_destination(destination_id)
 
                     feedback_queue.put(
                         make_status_message(
                             "DELIVERY_STARTED" if success else "DELIVERY_START_FAILED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE,
                             {
                                 "destination_id": destination_id
@@ -161,7 +161,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                         feedback_queue.put(
                             make_error_message(
                                 "Healthcare ROS is not ready",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
@@ -174,7 +174,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_status_message(
                             "NAVIGATION_STARTED" if success else "NAVIGATION_START_FAILED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE,
                             {
                                 "destination_id": destination_id
@@ -187,7 +187,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                         feedback_queue.put(
                             make_error_message(
                                 "Healthcare ROS is not ready",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
@@ -202,7 +202,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                         feedback_queue.put(
                             make_error_message(
                                 "GO_TO_POSE requires x, y, yaw",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
@@ -218,7 +218,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_status_message(
                             "NAVIGATION_STARTED" if success else "NAVIGATION_START_FAILED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE,
                             {
                                 "destination_id": destination_id,
@@ -236,7 +236,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_status_message(
                             "NAVIGATION_CANCEL_REQUESTED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE
                         )
                     )
@@ -246,7 +246,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                         feedback_queue.put(
                             make_error_message(
                                 "Healthcare ROS is not ready",
-                                PROC_HEALTHCARE_ROS,
+                                PROC_HEALTHCARE,
                                 PROC_CONTROL_CORE
                             )
                         )
@@ -264,7 +264,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                         make_cmd_vel_message(
                             linear_x,
                             angular_z,
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE
                         )
                     )
@@ -276,7 +276,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_status_message(
                             "ROBOT_STOPPED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE
                         )
                     )
@@ -291,7 +291,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_status_message(
                             "HEALTHCARE_ROS_STOPPED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE
                         )
                     )
@@ -311,7 +311,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_event_message(
                             "NAVIGATION_ARRIVED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE,
                             {
                                 "result": ros_node.get_navigation_result(),
@@ -326,7 +326,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
                     feedback_queue.put(
                         make_event_message(
                             "NAVIGATION_FAILED",
-                            PROC_HEALTHCARE_ROS,
+                            PROC_HEALTHCARE,
                             PROC_CONTROL_CORE,
                             {
                                 "result": nav_result,
@@ -343,7 +343,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
         feedback_queue.put(
             make_error_message(
                 "MPHealthcareROS process exception",
-                PROC_HEALTHCARE_ROS,
+                PROC_HEALTHCARE,
                 PROC_CONTROL_CORE
             )
         )
@@ -355,7 +355,7 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
         feedback_queue.put(
             make_status_message(
                 "HEALTHCARE_ROS_PROCESS_TERMINATED",
-                PROC_HEALTHCARE_ROS,
+                PROC_HEALTHCARE,
                 PROC_CONTROL_CORE
             )
         )

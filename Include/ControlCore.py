@@ -75,7 +75,7 @@ class CControlCore:
         self._mp_tts = CMultiProcessBase(PROC_TTS, proc_text_to_speech)
         self._mp_llm = CMultiProcessBase(PROC_LLM, proc_llm)
         self._mp_emergency = CMultiProcessBase(PROC_EMERGENCY, proc_emergency)
-        self._mp_ros = CMultiProcessBase(PROC_HEALTHCARE_ROS, proc_healthcare_ros)
+        self._mp_ros = CMultiProcessBase(PROC_HEALTHCARE, proc_healthcare_ros)
 
         self._mp_camera.sig_queue_bcast.connect(self.on_camera_feedback)
         self._mp_stt.sig_queue_bcast.connect(self.on_stt_feedback)
@@ -314,13 +314,13 @@ class CControlCore:
                 self.handle_event(event, msg.get(KEY_DATA, {}))
 
         elif msg_type == MSG_TYPE_STATUS:
-            self.log_status(PROC_HEALTHCARE_ROS, msg)
+            self.log_status(PROC_HEALTHCARE, msg)
 
         elif msg_type == MSG_TYPE_CMD_VEL:
             pass
 
         elif msg_type == MSG_TYPE_ERROR:
-            self.log_error(PROC_HEALTHCARE_ROS, msg)
+            self.log_error(PROC_HEALTHCARE, msg)
 
     def on_process_error(self, error_msg: str):
         write_log("Process error: %s" % str(error_msg), self)

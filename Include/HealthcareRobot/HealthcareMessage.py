@@ -68,6 +68,15 @@ KEY_ANGULAR_Z = "angular_z"
 KEY_EMERGENCY_TYPE = "emergency_type"
 KEY_CONFIDENCE = "confidence"
 
+KEY_DESTINATION_ID = "destination_id"
+
+KEY_DOOR_TEXT = "door_text"
+KEY_DOOR_BBOX = "door_bbox"
+
+KEY_IS_MATCHED = "is_matched"
+
+KEY_PATIENT_INFO = "patient_info"
+
 KEY_ERROR = "error"
 KEY_STATUS = "status"
 
@@ -76,7 +85,7 @@ KEY_STATUS = "status"
 # Base Message
 # ======================================================================================================================
 
-def make_message( # 모든 IPC 메시지의 기본 형식 생성 함수
+def make_message(
         msg_type: str,
         source: str,
         target: str,
@@ -133,7 +142,7 @@ def make_event_message(
 # State Message
 # ======================================================================================================================
 
-def make_fsm_message( # FSM 상태 메시지 생성 함수
+def make_fsm_message(
         state: str,
         source: str = PROC_CONTROL_CORE,
         target: str = "ALL"
@@ -166,11 +175,6 @@ def make_status_message(
 ):
     """
     프로세스 상태 메시지 생성
-
-    예:
-        CAMERA_READY
-        MODEL_LOADED
-        RUNNING
     """
 
     if data is None:
@@ -192,7 +196,7 @@ def make_status_message(
 # Text Message
 # ======================================================================================================================
 
-def make_text_message( # STT / LLM 텍스트 메시지 생성 함수
+def make_text_message(
         text: str,
         source: str,
         target: str
@@ -217,7 +221,7 @@ def make_text_message( # STT / LLM 텍스트 메시지 생성 함수
 # Emergency Message
 # ======================================================================================================================
 
-def make_emergency_message( # 응급 상황 메시지 생성 함수
+def make_emergency_message(
         emergency_type: str,
         confidence: float,
         source: str = PROC_EMERGENCY,
@@ -241,13 +245,46 @@ def make_emergency_message( # 응급 상황 메시지 생성 함수
 
 
 # ======================================================================================================================
+# Delivery Verification Message
+# ======================================================================================================================
+
+def make_delivery_verify_message(
+        destination_id: str,
+        detected_text: str,
+        is_matched: bool,
+        door_bbox=None,
+        source: str = PROC_HEALTHCARE,
+        target: str = PROC_CONTROL_CORE
+):
+    """
+    문 / 호실 확인 결과 메시지 생성
+    """
+
+    msg = make_message(
+        MSG_TYPE_DETECTION,
+        source,
+        target,
+        {}
+    )
+
+    msg[KEY_DESTINATION_ID] = destination_id
+    msg[KEY_DOOR_TEXT] = detected_text
+    msg[KEY_IS_MATCHED] = is_matched
+
+    if door_bbox is not None:
+        msg[KEY_DOOR_BBOX] = door_bbox
+
+    return msg
+
+
+# ======================================================================================================================
 # cmd_vel Message
 # ======================================================================================================================
 
-def make_cmd_vel_message( # 속도 명령 메시지 생성 함수
+def make_cmd_vel_message(
         linear_x: float,
         angular_z: float,
-        source: str = PROC_HEALTHCARE_ROS,
+        source: str = PROC_HEALTHCARE,
         target: str = PROC_CONTROL_CORE
 ):
     """
@@ -271,7 +308,7 @@ def make_cmd_vel_message( # 속도 명령 메시지 생성 함수
 # Error Message
 # ======================================================================================================================
 
-def make_error_message( # 에러 메시지 생성 함수
+def make_error_message(
         error_msg: str,
         source: str,
         target: str = PROC_CONTROL_CORE

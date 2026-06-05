@@ -51,7 +51,7 @@ PROC_STT = "MPSTT"
 PROC_TTS = "MPTTS"
 PROC_LLM = "MPLLM"
 PROC_EMERGENCY = "MPEmergency"
-PROC_HEALTHCARE_ROS = "MPRobotTask"
+PROC_HEALTHCARE = "MPRobotTask"
 
 
 # ======================================================================================================================
