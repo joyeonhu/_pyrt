@@ -5,6 +5,11 @@
       <sourceFolder url="file://$MODULE_DIR$/Include" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Include/ROSIntegration" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Include/SpeechSynthesis" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Include/AudioRecognition" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Include/Control" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Include/HealthcareRobot" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Include/MultiProcessing" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Include/Perception" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.8" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

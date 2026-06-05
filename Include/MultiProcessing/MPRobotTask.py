@@ -12,14 +12,14 @@ from MultiProcessing.MultiProcessBase import CMD_START, CMD_STOP, CMD_EXIT
 from ROSIntegration.ROSHealthcareNode import CROSHealthcareNode
 
 
-CMD_PROCESS_FOLLOW = "PROCESS_FOLLOW"
-CMD_START_GUIDE = "START_GUIDE"
-CMD_START_DELIVERY = "START_DELIVERY"
-CMD_GO_TO_DESTINATION = "GO_TO_DESTINATION"
-CMD_GO_TO_POSE = "GO_TO_POSE"
-CMD_CANCEL_NAVIGATION = "CANCEL_NAVIGATION"
-CMD_STOP_ROBOT = "STOP_ROBOT"
-CMD_PUBLISH_CMD_VEL = "PUBLISH_CMD_VEL"
+CMD_PROCESS_FOLLOW = "PROCESS_FOLLOW" # FOLLOW 명령, 카메라 프레임과 depth map을 받아서 FOLLOW 처리 수행 (예: 사람 인식 및 추적), 결과는 Nav2로 이동 명령으로 변환되어 ROSHealthcareNode에서 처리
+CMD_START_GUIDE = "START_GUIDE" # GUIDE 명령, 목적지 ID를 받아서 해당 위치로 이동 시작
+CMD_START_DELIVERY = "START_DELIVERY" # DELIVERY 명령, 목적지 ID를 받아서 해당 위치로 이동 시작
+CMD_GO_TO_DESTINATION = "GO_TO_DESTINATION" # GO_TO_DESTINATION 명령, 목적지 ID를 받아서 해당 위치로 이동 시작
+CMD_GO_TO_POSE = "GO_TO_POSE" # GO_TO_POSE 명령, x, y, yaw 정보를 받아서 해당 위치로 이동 시작
+CMD_CANCEL_NAVIGATION = "CANCEL_NAVIGATION" # CANCEL_NAVIGATION 명령, 현재 진행 중인 네비게이션 취소
+CMD_STOP_ROBOT = "STOP_ROBOT" # STOP_ROBOT 명령, 로봇을 즉시 정지, 네비게이션 취소 포함
+CMD_PUBLISH_CMD_VEL = "PUBLISH_CMD_VEL" # PUBLISH_CMD_VEL 명령, 수동으로 cmd_vel을 받아서 ROSHealthcareNode를 통해 cmd_vel 토픽에 발행, data에는 linear_x와 angular_z가 포함되어야 함 (예: {"command": "PUBLISH_CMD_VEL", "linear_x": 0.5, "angular_z": 0.1})
 
 
 def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
@@ -34,40 +34,40 @@ def proc_healthcare_ros(command_pipe, feedback_queue, feedback_queue_bk=None):
         5. STOP / EXIT 명령 처리
     """
 
-    ros_node = None
+    ros_node = None # ROSHealthcareNode 객체, 이 객체는 ROS와의 통신을 담당, 네비게이션 명령을 보내고 피드백을 받는 기능을 포함
 
-    is_running = True
-    is_ros_ready = False
+    is_running = True # 프로세스 실행 상태, EXIT 명령을 받으면 False로 변경되어 루프 종료
+    is_ros_ready = False # ROS 준비 상태, START 명령을 받으면 True, STOP 명령을 받으면 False, 이 상태에 따라 FOLLOW/GO_TO_DESTINATION/GO_TO_POSE 등의 명령 처리 여부 결정
 
     write_log("MPHealthcareROS process routine started.")
 
     try:
-        while is_running:
+        while is_running: # 프로세스가 종료 요청을 받을 때까지 반복
 
             # ------------------------------------------------------------------------------------------------------
             # 1. Command Receive
             # ------------------------------------------------------------------------------------------------------
 
-            if command_pipe.poll():
-                cmd_msg = command_pipe.recv()
+            if command_pipe.poll(): # ControlCore에서 명령이 도착했는지 확인
+                cmd_msg = command_pipe.recv() # 명령 메시지를 pipe에서 꺼냄
 
-                data = cmd_msg.get(KEY_DATA, {})
-                command = data.get(KEY_COMMAND, None)
+                data = cmd_msg.get(KEY_DATA, {}) # 메시지 안의 data 부분을 꺼냄, 없으면 빈 딕셔너리 사용
+                command = data.get(KEY_COMMAND, None) # data 안에서 실제 command를 꺼냄
 
-                if command == CMD_START:
-                    if ros_node is None:
-                        ros_node = CROSHealthcareNode()
+                if command == CMD_START: # 시작 명령, 이 명령이 들어오면 ROSHealthcareNode 객체를 초기화하고 ROS 준비 상태로 전환
+                    if ros_node is None: # 객체가 아직 생성되지 않았다면
+                        ros_node = CROSHealthcareNode() # ROSHealthcareNode 객체 생성, 이 객체는 ROS와의 통신을 담당, 네비게이션 명령을 보내고 피드백을 받는 기능을 포함
 
-                    is_ros_ready = True
+                    is_ros_ready = True # ROS 준비 상태로 전환
 
-                    status_msg = make_status_message(
+                    status_msg = make_status_message( # ROS 준비됐다는 상태 메시지 생성
                         "HEALTHCARE_ROS_READY",
                         PROC_HEALTHCARE_ROS,
                         PROC_CONTROL_CORE
                     )
-                    feedback_queue.put(status_msg)
+                    feedback_queue.put(status_msg) # 상태 메시지를 ControlCore로 보냄
 
-                elif command == CMD_PROCESS_FOLLOW:
+                elif command == CMD_PROCESS_FOLLOW: #
                     if not is_ros_ready or ros_node is None:
                         feedback_queue.put(
                             make_error_message(

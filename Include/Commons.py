@@ -47,11 +47,11 @@ PROJECT_NAME = "HealthcareRobotPyRT" # 프로젝트 이름
 PROC_CONTROL_CORE = "ControlCore"
 
 PROC_CAMERA = "MPCamera"
-PROC_STT = "MPSpeechToText"
-PROC_TTS = "MPTextToSpeech"
+PROC_STT = "MPSTT"
+PROC_TTS = "MPTTS"
 PROC_LLM = "MPLLM"
 PROC_EMERGENCY = "MPEmergency"
-PROC_HEALTHCARE_ROS = "MPHealthcareROS"
+PROC_HEALTHCARE_ROS = "MPRobotTask"
 
 
 # ======================================================================================================================
