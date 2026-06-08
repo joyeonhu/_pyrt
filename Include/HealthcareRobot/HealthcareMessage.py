@@ -52,6 +52,7 @@ KEY_EVENT = "event"
 KEY_FSM = "fsm"
 
 KEY_FRAME = "frame"
+KEY_FRAME_ID = "frame_id"
 
 KEY_TEXT = "text"
 KEY_SPEAK = "speak"

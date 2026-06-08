@@ -29,9 +29,12 @@ def proc_camera(command_pipe, feedback_queue, feedback_queue_bk=None):
     is_running = True # 프로세스 실행 상태
     is_camera_active = False # 카메라 활성 상태
 
+    frame_id = 0 # 프레임 ID
+
     frame_interval = 1.0 / 30.0 # 30 FPS 목표 (프레임 간격) 즉, 0.033초마다 프레임 하나를 보내겠다는 뜻
     # 프로세스 루프가 너무 빠르게 돌아서 queue가 점점 밀리는 것을 방지하기 위해 프레임 간격을 설정, 실제로는 카메라에서 프레임을 읽는 시간도 있기 때문에 완벽하게 30 FPS를 유지하기는 어려울 수 있음, 하지만 이 방식으로 대략적인 프레임 속도를 제어할 수 있음
     last_frame_time = 0.0 # 마지막 프레임 전송 시각
+
 
     write_log("MPCamera process routine started.")
 
@@ -101,9 +104,12 @@ def proc_camera(command_pipe, feedback_queue, feedback_queue_bk=None):
                 if curr_time - last_frame_time >= frame_interval: # 마지막 프레임 이후 충분한 시간이 지났는지 확인, 처음에는 값이 크니까 바로 프레임 보냄
                     last_frame_time = curr_time # 마지막 프레임 시각 업데이트
 
-                    frame_packet = camera.get_frame_packet() # 카메라에서 프레임 패킷을 가져옴, 보통 frame_id, timestamp, frame_bgr, depth_map 등이 포함됨
+                    frame_packet = camera.get_frame_packet() # 카메라에서 프레임 패킷을 가져옴, 프레임 패킷은 이미지 데이터와 함께 필요한 메타데이터
 
-                    if frame_packet is not None: # 프레임 패킷이 정상적으로 가져와졌으면
+                    if frame_packet is not None: # 프레임 패킷을 성공적으로 가져왔으면
+                        frame_id += 1 # 프레임 ID 증가, 각 프레임에 고유한 ID를 부여해서 ControlCore에서 프레임을 추적할 수 있도록 함
+                        frame_packet[KEY_FRAME_ID] = frame_id # 프레임 패킷에 프레임 ID 추가
+
                         msg = make_message( # 프레임 패킷 메시지 생성
                             MSG_TYPE_FRAME,
                             PROC_CAMERA,
