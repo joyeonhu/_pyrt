@@ -54,13 +54,13 @@ class CROSFollowNode:
         """
 
         if frame_bgr is None:
-            return
+            return 0.0, 0.0
 
         patients = self._patient_detector.detect(frame_bgr)
 
         if len(patients) == 0:
             self._cmd_vel_node.stop_robot()
-            return
+            return 0.0, 0.0
 
         # ----------------------------------------------------------------------------------------------------------
         # 첫 번째 환자 사용
@@ -93,7 +93,7 @@ class CROSFollowNode:
 
         if depth_m is None:
             self._cmd_vel_node.stop_robot()
-            return
+            return 0.0, 0.0
 
         # ----------------------------------------------------------------------------------------------------------
         # Real Distance
@@ -108,7 +108,7 @@ class CROSFollowNode:
 
         if real_distance_cm is None:
             self._cmd_vel_node.stop_robot()
-            return
+            return 0.0, 0.0
 
         real_distance_m = real_distance_cm / 100.0
 
@@ -154,6 +154,8 @@ class CROSFollowNode:
             ),
             self
         )
+
+        return linear_x, angular_z
 
     # ==============================================================================================================
     # Draw
