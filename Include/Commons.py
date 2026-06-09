@@ -23,9 +23,16 @@ ROOT_PATH = os.path.dirname(FILE_PATH)
 
 INCLUDE_PATH = os.path.join(ROOT_PATH, "Include")
 RESOURCES_PATH = os.path.join(ROOT_PATH, "Resources")
+LIBRARY_PATH = os.path.join(ROOT_PATH, "Library")
+SERIAL_PATH = os.path.join(LIBRARY_PATH, "Serial")
 LOG_PATH = os.path.join(ROOT_PATH, "Log")
 
-sys.path.extend([INCLUDE_PATH, RESOURCES_PATH])
+sys.path.extend([
+    INCLUDE_PATH,
+    RESOURCES_PATH,
+    LIBRARY_PATH,
+    SERIAL_PATH,
+])
 sys.path = list(set(sys.path))
 
 
@@ -52,6 +59,7 @@ PROC_TTS = "MPTTS"
 PROC_LLM = "MPLLM"
 PROC_EMERGENCY = "MPEmergency"
 PROC_HEALTHCARE = "MPRobotTask"
+PROC_STELLA_B2 = "MPStellaB2"
 
 
 # ======================================================================================================================
@@ -111,6 +119,9 @@ class PySignal(object): # 어떤 일이 생겼을 때 연결된 함수를 호출
 # ======================================================================================================================
 # System Check
 # ======================================================================================================================
+def is_system_win() -> bool: # 현재 시스템이 Windows인지 확인하는 함수 (sys.platform이 "win"으로 시작하면 True 반환)
+    return sys.platform.startswith("win")
+
 
 def is_ros_installed() -> bool: # ROS 설치 여부 확인 (rclpy 모듈이 존재하는지 검사)
     spec = importlib.util.find_spec("rclpy")

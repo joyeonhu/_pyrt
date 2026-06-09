@@ -52,7 +52,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
     is_running = True # 프로세스 실행 여부
     is_robot_task_ready = False # 로봇 태스크 준비 여부, START 명령 처리 후 True
 
-    last_nav_result = None # 마지막 네비게이션 결과 저장, 도착/실패 이벤트 중복 방지용
     last_arrived_sent = False # 마지막 도착 이벤트 전송 여부, 도착 이벤트 중복 방지용
     last_failed_sent = False # 마지막 실패 이벤트 전송 여부, 실패 이벤트 중복 방지용
 
@@ -119,7 +118,16 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
                         )
                         continue
 
-                    ros_node.process_follow(frame_bgr, depth_map) # ROSHealthcareNode의 Follow 처리 함수 호출, 내부에서 환자 검출 -> 거리 계산 -> APF -> /cmd_vel publish
+                    linear_x, angular_z = ros_node.process_follow(frame_bgr, depth_map)
+
+                    feedback_queue.put(
+                        make_cmd_vel_message(
+                            linear_x,
+                            angular_z,
+                            PROC_HEALTHCARE,
+                            PROC_CONTROL_CORE
+                        )
+                    )
 
                     feedback_queue.put( # Follow 처리 완료 상태 메시지 전송
                         make_status_message(
@@ -146,7 +154,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
 
                     destination_id = data.get(KEY_DESTINATION_ID, None) # Guide 처리에 사용할 목적지 ID 추출
 
-                    last_nav_result = None # 네비게이션 결과 초기화, 도착/실패 이벤트 중복 방지용
                     last_arrived_sent = False # 도착 이벤트 전송 여부 초기화, 도착 이벤트 중복 방지용
                     last_failed_sent = False # 실패 이벤트 전송 여부 초기화, 실패 이벤트 중복 방지용
 
@@ -176,7 +183,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
 
                     destination_id = data.get(KEY_DESTINATION_ID, None) # Delivery 처리에 사용할 목적지 ID 추출
 
-                    last_nav_result = None # 네비게이션 결과 초기화, 도착/실패 이벤트 중복 방지용
                     last_arrived_sent = False # 도착 이벤트 전송 여부 초기화, 도착 이벤트 중복 방지용
                     last_failed_sent = False # 실패 이벤트 전송 여부 초기화, 실패 이벤트 중복 방지용
 
@@ -206,7 +212,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
 
                     destination_id = data.get(KEY_DESTINATION_ID, None) # Navigation 처리에 사용할 목적지 ID 추출
 
-                    last_nav_result = None # 네비게이션 결과 초기화, 도착/실패 이벤트 중복 방지용
                     last_arrived_sent = False # 도착 이벤트 전송 여부 초기화, 도착 이벤트 중복 방지용
                     last_failed_sent = False # 실패 이벤트 전송 여부 초기화, 실패 이벤트 중복 방지용
 
@@ -249,7 +254,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
                         )
                         continue
 
-                    last_nav_result = None # 네비게이션 결과 초기화, 도착/실패 이벤트 중복 방지용
                     last_arrived_sent = False # 도착 이벤트 전송 여부 초기화, 도착 이벤트 중복 방지용
                     last_failed_sent = False # 실패 이벤트 전송 여부 초기화, 실패 이벤트 중복 방지용
 
@@ -318,13 +322,7 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
                         )
 
                     else:
-                        feedback_queue.put( # 환자가 감지되지 않은 경우 상태 메시지 전송
-                            make_status_message(
-                                "PATIENT_NOT_DETECTED",
-                                PROC_HEALTHCARE,
-                                PROC_CONTROL_CORE
-                            )
-                        )
+                        pass # 환자가 감지되지 않은 경우에는 별도의 메시지를 전송하지 않고 넘어감
 
                 # ==============================================================================================
                 # DELIVERY_VERIFY: 문 / 호실 확인
@@ -343,16 +341,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
 
                     frame_bgr = data.get(KEY_FRAME, None) # 문/호실 확인 처리에 사용할 BGR 이미지 프레임 추출
                     destination_id = data.get(KEY_DESTINATION_ID, None) # 문/호실 확인 처리에 사용할 목적지 ID 추출, 도착한 목적지가 맞는지 확인하는데 필요
-
-                    if frame_bgr is None: # BGR 이미지 프레임이 없으면 문/호실 확인 처리할 수 없으므로 상태 메시지 전송하고 명령 처리 건너뜀
-                        feedback_queue.put( # 문/호실 확인 처리 불가 상태 메시지 전송
-                            make_status_message(
-                                "DOOR_CHECK_NO_FRAME",
-                                PROC_HEALTHCARE,
-                                PROC_CONTROL_CORE
-                            )
-                        )
-                        continue
 
                     if destination_id is None: # 목적지 ID가 없으면 문/호실 확인 처리할 수 없으므로 오류 메시지 전송하고 명령 처리 건너뜀
                         feedback_queue.put( # 문/호실 확인 처리 불가 오류 메시지 전송
@@ -437,6 +425,15 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
                     if ros_node is not None: # ROSHealthcareNode가 생성되어 있다면 로봇 정지 함수 호출하여 로봇 정지, 내부에서 /cmd_vel에 0으로 퍼블리시하여 로봇 정지
                         ros_node.stop_robot() # ROSHealthcareNode의 로봇 정지 함수 호출, 내부에서 /cmd_vel에 0으로 퍼블리시하여 로봇 정지
 
+                    feedback_queue.put(
+                        make_cmd_vel_message(
+                            0.0,
+                            0.0,
+                            PROC_HEALTHCARE,
+                            PROC_CONTROL_CORE
+                        )
+                    )
+
                     feedback_queue.put( # 로봇 정지 완료 상태 메시지 전송
                         make_status_message(
                             "ROBOT_STOPPED",
@@ -475,7 +472,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
 
                 if ros_node.is_arrived() and not last_arrived_sent: # 네비게이션이 도착했지만 아직 도착 이벤트를 전송하지 않았다면 도착 이벤트 전송, 도착 이벤트 중복 방지 위해 last_arrived_sent 플래그 사용
                     last_arrived_sent = True # 도착 이벤트 전송 여부 플래그 설정
-                    last_nav_result = nav_result # 마지막 네비게이션 결과 저장
 
                     feedback_queue.put( # 네비게이션 도착 이벤트 메시지 전송, 네비게이션 결과 및 남은 거리 정보 포함
                         make_event_message(
@@ -495,7 +491,6 @@ def proc_robot_task(command_pipe, feedback_queue, feedback_queue_bk=None):
                         and not last_failed_sent # 아직 실패 이벤트를 전송하지 않았다면
                 ):
                     last_failed_sent = True # 실패 이벤트 전송 여부 플래그 설정
-                    last_nav_result = nav_result # 마지막 네비게이션 결과 저장
 
                     feedback_queue.put( # 네비게이션 실패 이벤트 메시지 전송, 네비게이션 결과 및 남은 거리 정보 포함
                         make_event_message(

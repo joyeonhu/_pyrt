@@ -1,0 +1,114 @@
+[2026-06-08 15:04:29,820] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPCamera.py", line 56, in proc_camera
+    camera = CZEDCameraModule() # 객체 생성
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/Perception/CameraModule.py", line 41, in __init__
+    raise ImportError(
+ImportError: pyzed.sl 모듈을 찾을 수 없습니다. ZED SDK Python API 설치가 필요합니다.
+
+[2026-06-08 15:04:29,821] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPSTT.py", line 50, in proc_speech_to_text
+    stt = CSpeechToText() # STT 객체 생성
+          ^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/AudioRecognition/SpeechToText.py", line 43, in __init__
+    self.initialize()
+  File "/home/yeonhu/PyRT/Include/AudioRecognition/SpeechToText.py", line 55, in initialize
+    raise ImportError(
+ImportError: speech_recognition 라이브러리를 찾을 수 없습니다.
+
+[2026-06-08 15:04:29,823] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPEmergency.py", line 48, in proc_emergency
+    emergency_manager = CEmergencyManager() # EmergencyManager 객체 생성, 이 객체는 응급 상황을 판단하는 기능을 담당
+                        ^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/HealthcareRobot/EmergencyManager.py", line 25, in __init__
+    self._detector = CEmergencyDetector() # 응급 감지 모델
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/Perception/EmergencyDetector.py", line 99, in __init__
+    self.load_model()
+  File "/home/yeonhu/PyRT/Include/Perception/EmergencyDetector.py", line 124, in load_model
+    self._model = Qwen2VLForConditionalGeneration.from_pretrained(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4152, in from_pretrained
+    device_map = check_and_set_device_map(device_map)  # warn, error and fix the device map
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/integrations/accelerate.py", line 134, in check_and_set_device_map
+    raise ValueError(
+ValueError: Using a `device_map`, `tp_plan`, `torch.device` context manager or setting `torch.set_default_device(device)` requires `accelerate`. You can install it with `pip install accelerate`
+
+[2026-06-08 15:04:30,603] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPRobotTask.py", line 75, in proc_robot_task
+    ros_node = CROSHealthcareNode()
+               ^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/ROSIntegration/ROSHealthcareNode.py", line 35, in __init__
+    self.initialize() # ROS 초기화 및 내부 노드 생성
+    ^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/ROSIntegration/ROSHealthcareNode.py", line 49, in initialize
+    self._follow_node = CROSFollowNode() # 환자 추적 노드 생성
+                        ^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/ROSIntegration/ROSFollowNode.py", line 33, in __init__
+    self._patient_db = CPatientDB()
+                       ^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/HealthcareRobot/PatientDB.py", line 41, in __init__
+    self.load() # patients.txt 파일 로드
+    ^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/HealthcareRobot/PatientDB.py", line 58, in load
+    raise FileNotFoundError(
+FileNotFoundError: Patient DB file not found: /home/yeonhu/PyRT/Data/DB/patients.txt
+
+[2026-06-08 15:04:33,312] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPLLM.py", line 48, in proc_llm
+    llm = CLLMManager() # LLM 매니저 객체 생성, 이 객체는 LLM 모델을 로드하고 텍스트를 파싱하는 기능을 담당
+          ^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/HealthcareRobot/LLMManager.py", line 74, in __init__
+    self.load_model() # 모델 로드
+    ^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/HealthcareRobot/LLMManager.py", line 97, in load_model
+    self._model = AutoModelForCausalLM.from_pretrained( # Hugging Face 모델 허브에서 LLM 모델 로드
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/models/auto/auto_factory.py", line 404, in from_pretrained
+    return model_class.from_pretrained(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4152, in from_pretrained
+    device_map = check_and_set_device_map(device_map)  # warn, error and fix the device map
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/integrations/accelerate.py", line 134, in check_and_set_device_map
+    raise ValueError(
+ValueError: Using a `device_map`, `tp_plan`, `torch.device` context manager or setting `torch.set_default_device(device)` requires `accelerate`. You can install it with `pip install accelerate`
+
+[2026-06-08 15:06:40,226] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPCamera.py", line 56, in proc_camera
+    camera = CZEDCameraModule() # 객체 생성
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/Perception/CameraModule.py", line 41, in __init__
+    raise ImportError(
+ImportError: pyzed.sl 모듈을 찾을 수 없습니다. ZED SDK Python API 설치가 필요합니다.
+
+[2026-06-08 15:06:40,553] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPEmergency.py", line 48, in proc_emergency
+    emergency_manager = CEmergencyManager() # EmergencyManager 객체 생성, 이 객체는 응급 상황을 판단하는 기능을 담당
+                        ^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/HealthcareRobot/EmergencyManager.py", line 25, in __init__
+    self._detector = CEmergencyDetector() # 응급 감지 모델
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/Perception/EmergencyDetector.py", line 99, in __init__
+    self.load_model()
+  File "/home/yeonhu/PyRT/Include/Perception/EmergencyDetector.py", line 124, in load_model
+    self._model = Qwen2VLForConditionalGeneration.from_pretrained(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/modeling_utils.py", line 4193, in from_pretrained
+    hf_quantizer, config, device_map = get_hf_quantizer(
+                                       ^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/quantizers/auto.py", line 342, in get_hf_quantizer
+    hf_quantizer.validate_environment(
+  File "/home/yeonhu/PyRT/.venv/lib/python3.12/site-packages/transformers/quantizers/quantizer_bnb_4bit.py", line 62, in validate_environment
+    raise ImportError(
+ImportError: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip install -U bitsandbytes>=0.46.1`
+
+[2026-06-08 15:08:16,020] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPCamera.py", line 56, in proc_camera
+    camera = CZEDCameraModule() # 객체 생성
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/Perception/CameraModule.py", line 41, in __init__
+    raise ImportError(
+ImportError: pyzed.sl 모듈을 찾을 수 없습니다. ZED SDK Python API 설치가 필요합니다.
+

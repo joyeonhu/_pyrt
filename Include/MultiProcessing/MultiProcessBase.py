@@ -16,7 +16,7 @@ from HealthcareRobot.HealthcareMessage import *
 CMD_START = "START"
 CMD_STOP = "STOP"
 CMD_EXIT = "EXIT"
-
+CMD_LISTEN_ONCE = "LISTEN_ONCE"
 
 class ThreadQueueBroadcaster(threading.Thread):
     """

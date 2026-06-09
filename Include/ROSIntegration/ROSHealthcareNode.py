@@ -93,10 +93,10 @@ class CROSHealthcareNode:
         환자 추적 처리
         """
 
-        if not self._is_initialized: # ROSHealthcareNode가 초기화되지 않았으면
-            return # 환자 추적 처리하지 않고 종료
+        if not self._is_initialized:
+            return 0.0, 0.0
 
-        self._follow_node.process( # Follow 노드의 process() 함수를 호출하여 환자 추적 처리, 내부에서 환자 검출 -> 거리 계산 -> APF -> /cmd_vel publish
+        return self._follow_node.process(
             frame_bgr,
             depth_map
         )

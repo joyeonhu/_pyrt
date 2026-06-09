@@ -81,6 +81,8 @@ KEY_PATIENT_INFO = "patient_info"
 KEY_ERROR = "error"
 KEY_STATUS = "status"
 
+KEY_PORT = "port"
+KEY_ROBOT_STATE = "robot_state"
 
 # ======================================================================================================================
 # Base Message
