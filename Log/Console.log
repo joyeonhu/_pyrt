@@ -308,3 +308,164 @@
 [2026-06-09 11:48:31,500] [CMainWindow] MainWindow initialized.
 [2026-06-09 11:48:59,582] [CMainWindow] MainWindow closed.
 [2026-06-09 11:48:59,582] Application terminated.
+[2026-06-09 18:12:27,503] Application start.
+[2026-06-09 18:12:27,541] [CControlCore] ControlCore initialized.
+[2026-06-09 18:12:27,551] [CMainWindow] MainWindow initialized.
+[2026-06-09 18:12:33,090] [CMultiProcessBase] Process started: MPCamera
+[2026-06-09 18:12:33,091] MPCamera process routine started.
+[2026-06-09 18:12:33,096] [CMultiProcessBase] Process started: MPSTT
+[2026-06-09 18:12:33,097] MPSpeechToText process routine started.
+[2026-06-09 18:12:33,102] [CMultiProcessBase] Process started: MPTTS
+[2026-06-09 18:12:33,103] MPTextToSpeech process routine started.
+[2026-06-09 18:12:33,108] [CMultiProcessBase] Process started: MPLLM
+[2026-06-09 18:12:33,109] MPLLM process routine started.
+[2026-06-09 18:12:33,114] [CMultiProcessBase] Process started: MPEmergency
+[2026-06-09 18:12:33,115] MPEmergency process routine started.
+[2026-06-09 18:12:33,120] [CMultiProcessBase] Process started: MPRobotTask
+[2026-06-09 18:12:33,121] MPRobotTask process routine started.
+[2026-06-09 18:12:33,126] [CMultiProcessBase] Process started: MPStellaB2
+[2026-06-09 18:12:33,127] MPStellaB2 process routine started.
+[2026-06-09 18:12:33,328] [CEmergencyDetector] Loading emergency VLM model...
+[2026-06-09 18:12:33,329] [CSpeechToText] SpeechToText initialized.
+[2026-06-09 18:12:33,331] [CControlCore] STATUS | source=MPSTT | status=STT_READY
+[2026-06-09 18:12:33,331] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_CREATED
+[2026-06-09 18:12:33,367] [CTextToSpeech] TextToSpeech initialized.
+[2026-06-09 18:12:33,368] [CControlCore] STATUS | source=MPTTS | status=TTS_READY
+[2026-06-09 18:12:33,436] [CLLMManager] Loading LLM model: Qwen/Qwen2.5-1.5B-Instruct
+[2026-06-09 18:12:33,453] [CGownClassifier] Gown classifier loaded: /home/yeonhu/PyRT/Data/Models/gown_classifier.pth
+[2026-06-09 18:12:33,528] [CControlCore] EVENT | state=START | event=STARTUP_DONE
+[2026-06-09 18:12:33,528] [CControlCore] STATE CHANGE | START -> IDLE
+[2026-06-09 18:12:33,528] [CControlCore] ControlCore started.
+[2026-06-09 18:12:33,529] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:12:33,602] [CZEDCameraModule] ZED camera open failed: CAMERA STREAM FAILED TO START
+[2026-06-09 18:12:33,603] [CControlCore] ERROR | source=MPCamera | error=Camera open failed
+[2026-06-09 18:12:33,728] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_CONNECT_FAILED
+[2026-06-09 18:12:33,730] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_STOPPED
+[2026-06-09 18:12:34,347] [CPatientDetector] YOLO person detector loaded: /home/yeonhu/PyRT/Data/Models/yolov8n.pt
+[2026-06-09 18:12:34,348] [CPatientDB] Patient DB loaded: 6 patients
+[2026-06-09 18:12:34,353] [CControlCore] ERROR | source=MPRobotTask | error=MPRobotTask process exception
+[2026-06-09 18:12:34,353] MPRobotTask process routine terminated.
+[2026-06-09 18:12:34,354] [CControlCore] STATUS | source=MPRobotTask | status=ROBOT_TASK_PROCESS_TERMINATED
+[2026-06-09 18:12:39,397] [CControlCore] STATUS | source=MPSTT | status=STT_NO_INPUT
+[2026-06-09 18:12:39,399] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:12:42,315] [CEmergencyDetector] Emergency VLM model loaded.
+[2026-06-09 18:12:42,316] [CControlCore] STATUS | source=MPEmergency | status=EMERGENCY_READY
+[2026-06-09 18:12:45,158] [CControlCore] STATUS | source=MPSTT | status=STT_NO_INPUT
+[2026-06-09 18:12:45,159] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:12:51,036] [CControlCore] STATUS | source=MPSTT | status=STT_NO_INPUT
+[2026-06-09 18:12:51,038] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:12:54,889] [CControlCore] Process error: MP ERROR: process is not alive
+[2026-06-09 18:12:54,890] [CControlCore] Process error: MP ERROR: process is not alive
+[2026-06-09 18:12:54,891] [CControlCore] STATUS | source=MPEmergency | status=EMERGENCY_STOPPED
+[2026-06-09 18:12:54,891] [CControlCore] STATUS | source=MPCamera | status=CAMERA_STOPPED
+[2026-06-09 18:12:54,892] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_STOPPED
+[2026-06-09 18:12:54,892] [CControlCore] STATUS | source=MPTTS | status=TTS_STOPPED
+[2026-06-09 18:12:54,894] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_STOPPED
+[2026-06-09 18:12:55,092] MPCamera process routine terminated.
+[2026-06-09 18:12:55,093] [CControlCore] STATUS | source=MPCamera | status=CAMERA_PROCESS_TERMINATED
+[2026-06-09 18:12:55,208] [CMultiProcessBase] Process released: MPCamera
+[2026-06-09 18:12:55,319] [CMultiProcessBase] Process released: MPSTT
+[2026-06-09 18:12:55,321] MPTextToSpeech process routine terminated.
+[2026-06-09 18:12:55,321] [CControlCore] STATUS | source=MPTTS | status=TTS_PROCESS_TERMINATED
+[2026-06-09 18:12:55,421] [CMultiProcessBase] Process released: MPTTS
+[2026-06-09 18:12:56,118] [CMultiProcessBase] Process released: MPLLM
+[2026-06-09 18:12:56,121] MPEmergency process routine terminated.
+[2026-06-09 18:12:56,121] [CControlCore] STATUS | source=MPEmergency | status=EMERGENCY_PROCESS_TERMINATED
+[2026-06-09 18:12:56,291] [CMultiProcessBase] Process released: MPEmergency
+[2026-06-09 18:12:56,291] [CMultiProcessBase] Process released: MPRobotTask
+[2026-06-09 18:12:56,293] MPStellaB2 process routine terminated.
+[2026-06-09 18:12:56,293] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_PROCESS_TERMINATED
+[2026-06-09 18:12:56,392] [CMultiProcessBase] Process released: MPStellaB2
+[2026-06-09 18:12:56,392] [CControlCore] ControlCore stopped.
+[2026-06-09 18:12:56,392] [CMainWindow] MainWindow closed.
+[2026-06-09 18:12:56,413] Application terminated.
+[2026-06-09 18:15:31,889] Application start.
+[2026-06-09 18:15:31,906] [CControlCore] ControlCore initialized.
+[2026-06-09 18:15:31,916] [CMainWindow] MainWindow initialized.
+[2026-06-09 18:15:34,159] [CMultiProcessBase] Process started: MPCamera
+[2026-06-09 18:15:34,161] MPCamera process routine started.
+[2026-06-09 18:15:34,166] [CMultiProcessBase] Process started: MPSTT
+[2026-06-09 18:15:34,167] MPSpeechToText process routine started.
+[2026-06-09 18:15:34,171] [CMultiProcessBase] Process started: MPTTS
+[2026-06-09 18:15:34,172] MPTextToSpeech process routine started.
+[2026-06-09 18:15:34,177] [CMultiProcessBase] Process started: MPLLM
+[2026-06-09 18:15:34,178] MPLLM process routine started.
+[2026-06-09 18:15:34,182] [CMultiProcessBase] Process started: MPEmergency
+[2026-06-09 18:15:34,183] MPEmergency process routine started.
+[2026-06-09 18:15:34,188] [CMultiProcessBase] Process started: MPRobotTask
+[2026-06-09 18:15:34,189] MPRobotTask process routine started.
+[2026-06-09 18:15:34,193] [CMultiProcessBase] Process started: MPStellaB2
+[2026-06-09 18:15:34,194] MPStellaB2 process routine started.
+[2026-06-09 18:15:34,395] [CEmergencyDetector] Loading emergency VLM model...
+[2026-06-09 18:15:34,395] [CSpeechToText] SpeechToText initialized.
+[2026-06-09 18:15:34,398] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_CREATED
+[2026-06-09 18:15:34,399] [CControlCore] STATUS | source=MPSTT | status=STT_READY
+[2026-06-09 18:15:34,410] [CTextToSpeech] TextToSpeech initialized.
+[2026-06-09 18:15:34,411] [CControlCore] STATUS | source=MPTTS | status=TTS_READY
+[2026-06-09 18:15:34,455] [CGownClassifier] Gown classifier loaded: /home/yeonhu/PyRT/Data/Models/gown_classifier.pth
+[2026-06-09 18:15:34,505] [CLLMManager] Loading LLM model: Qwen/Qwen2.5-1.5B-Instruct
+[2026-06-09 18:15:34,594] [CControlCore] EVENT | state=START | event=STARTUP_DONE
+[2026-06-09 18:15:34,595] [CControlCore] STATE CHANGE | START -> IDLE
+[2026-06-09 18:15:34,595] [CControlCore] ControlCore started.
+[2026-06-09 18:15:34,595] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:15:34,675] [CZEDCameraModule] ZED camera open failed: CAMERA STREAM FAILED TO START
+[2026-06-09 18:15:34,676] [CControlCore] ERROR | source=MPCamera | error=Camera open failed
+[2026-06-09 18:15:34,795] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_CONNECT_FAILED
+[2026-06-09 18:15:34,796] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_STOPPED
+[2026-06-09 18:15:34,985] [CPatientDetector] YOLO person detector loaded: /home/yeonhu/PyRT/Data/Models/yolov8n.pt
+[2026-06-09 18:15:34,985] [CPatientDB] Patient DB loaded: 6 patients
+[2026-06-09 18:15:34,985] [CROSFollowNode] ROSFollowNode initialized.
+[2026-06-09 18:15:35,071] [CROSNavigationNode] ROSNavigationNode initialized.
+[2026-06-09 18:15:35,074] [CROSCmdVelNode] ROSCmdVelNode started. topic=/cmd_vel
+[2026-06-09 18:15:35,116] [CGownClassifier] Gown classifier loaded: /home/yeonhu/PyRT/Data/Models/gown_classifier.pth
+[2026-06-09 18:15:35,287] [CPatientDetector] YOLO person detector loaded: /home/yeonhu/PyRT/Data/Models/yolov8n.pt
+[2026-06-09 18:15:35,321] [CDoorDetector] Door detector loaded: /home/yeonhu/PyRT/Data/Models/door_yolov8n.pt
+[2026-06-09 18:15:35,322] [CControlCore] STATUS | source=MPRobotTask | status=ROBOT_TASK_READY
+[2026-06-09 18:15:35,323] [CROSFollowNode] FOLLOW STOP | reason=FOLLOW_STOP_REQUESTED
+[2026-06-09 18:15:35,349] [CControlCore] CMD_VEL | source=MPRobotTask | linear_x=0.000 | angular_z=0.000
+[2026-06-09 18:15:35,350] [CControlCore] ERROR | source=MPStellaB2 | error=Stella B2 is not connected
+[2026-06-09 18:15:35,350] [CControlCore] STATUS | source=MPRobotTask | status=ROBOT_STOPPED
+[2026-06-09 18:15:40,506] [CControlCore] STATUS | source=MPSTT | status=STT_NO_INPUT
+[2026-06-09 18:15:40,508] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:15:44,214] [CEmergencyDetector] Emergency VLM model loaded.
+[2026-06-09 18:15:44,214] [CControlCore] STATUS | source=MPEmergency | status=EMERGENCY_READY
+[2026-06-09 18:15:46,962] [CControlCore] STATUS | source=MPSTT | status=STT_NO_INPUT
+[2026-06-09 18:15:46,964] [CControlCore] STATUS | source=MPSTT | status=STT_LISTENING
+[2026-06-09 18:15:50,273] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_STOPPED
+[2026-06-09 18:15:50,274] [CROSFollowNode] FOLLOW STOP | reason=FOLLOW_STOP_REQUESTED
+[2026-06-09 18:15:50,274] [CControlCore] STATUS | source=MPEmergency | status=EMERGENCY_STOPPED
+[2026-06-09 18:15:50,274] [CControlCore] STATUS | source=MPTTS | status=TTS_STOPPED
+[2026-06-09 18:15:50,274] [CControlCore] STATUS | source=MPCamera | status=CAMERA_STOPPED
+[2026-06-09 18:15:50,275] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_STOPPED
+[2026-06-09 18:15:50,276] [CControlCore] CMD_VEL | source=MPRobotTask | linear_x=0.000 | angular_z=0.000
+[2026-06-09 18:15:50,276] [CROSFollowNode] FOLLOW STOP | reason=FOLLOW_STOP_REQUESTED
+[2026-06-09 18:15:50,277] [CControlCore] ERROR | source=MPStellaB2 | error=Stella B2 is not connected
+[2026-06-09 18:15:50,277] [CControlCore] STATUS | source=MPRobotTask | status=ROBOT_STOPPED
+[2026-06-09 18:15:50,278] [CControlCore] STATUS | source=MPRobotTask | status=ROBOT_TASK_STOPPED
+[2026-06-09 18:15:50,475] MPCamera process routine terminated.
+[2026-06-09 18:15:50,475] [CControlCore] STATUS | source=MPCamera | status=CAMERA_PROCESS_TERMINATED
+[2026-06-09 18:15:50,574] [CMultiProcessBase] Process released: MPCamera
+[2026-06-09 18:15:50,699] [CMultiProcessBase] Process released: MPSTT
+[2026-06-09 18:15:50,702] MPTextToSpeech process routine terminated.
+[2026-06-09 18:15:50,702] [CControlCore] STATUS | source=MPTTS | status=TTS_PROCESS_TERMINATED
+[2026-06-09 18:15:50,801] [CMultiProcessBase] Process released: MPTTS
+[2026-06-09 18:15:51,568] [CMultiProcessBase] Process released: MPLLM
+[2026-06-09 18:15:51,571] MPEmergency process routine terminated.
+[2026-06-09 18:15:51,572] [CControlCore] STATUS | source=MPEmergency | status=EMERGENCY_PROCESS_TERMINATED
+[2026-06-09 18:15:51,669] [CMultiProcessBase] Process released: MPEmergency
+[2026-06-09 18:15:51,670] [CROSFollowNode] FOLLOW STOP | reason=FOLLOW_STOP_REQUESTED
+[2026-06-09 18:15:51,672] [CROSFollowNode] FOLLOW STOP | reason=FOLLOW_STOP_REQUESTED
+[2026-06-09 18:15:51,674] [CControlCore] STATUS | source=MPRobotTask | status=ROBOT_TASK_PROCESS_TERMINATED
+[2026-06-09 18:15:51,674] MPRobotTask process routine terminated.
+[2026-06-09 18:15:51,770] [CMultiProcessBase] Process released: MPRobotTask
+[2026-06-09 18:15:51,771] MPStellaB2 process routine terminated.
+[2026-06-09 18:15:51,772] [CControlCore] STATUS | source=MPStellaB2 | status=STELLA_B2_PROCESS_TERMINATED
+[2026-06-09 18:15:51,871] [CMultiProcessBase] Process released: MPStellaB2
+[2026-06-09 18:15:51,871] [CControlCore] ControlCore stopped.
+[2026-06-09 18:15:56,194] [CMainWindow] MainWindow closed.
+[2026-06-09 18:15:56,195] Application terminated.
+[2026-06-10 11:14:48,086] Application start.
+[2026-06-10 11:14:48,104] [CControlCore] ControlCore initialized.
+[2026-06-10 11:14:48,115] [CMainWindow] MainWindow initialized.
+[2026-06-10 11:18:15,993] [CMainWindow] MainWindow closed.
+[2026-06-10 11:18:15,994] Application terminated.

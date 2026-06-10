@@ -11,8 +11,6 @@ from HealthcareRobot.HealthcareMessage import *
 from MultiProcessing.MultiProcessBase import CMD_START, CMD_STOP, CMD_EXIT, CMD_LISTEN_ONCE
 from AudioRecognition.SpeechToText import CSpeechToText
 
-CMD_LISTEN_ONCE = "LISTEN_ONCE"
-
 def proc_speech_to_text(command_pipe, feedback_queue, feedback_queue_bk=None):
     """
     SpeechToText Process Routine

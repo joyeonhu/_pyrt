@@ -112,3 +112,12 @@ ImportError: Using `bitsandbytes` 4-bit quantization requires bitsandbytes: `pip
     raise ImportError(
 ImportError: pyzed.sl 모듈을 찾을 수 없습니다. ZED SDK Python API 설치가 필요합니다.
 
+[2026-06-09 18:12:34,352] ERROR - Traceback (most recent call last):
+  File "/home/yeonhu/PyRT/Include/MultiProcessing/MPRobotTask.py", line 86, in proc_robot_task
+    follow_node = CROSFollowNode()
+                  ^^^^^^^^^^^^^^^^
+  File "/home/yeonhu/PyRT/Include/ROSIntegration/ROSFollowNode.py", line 43, in __init__
+    KEY_LINEAR_X: 0.0,
+    ^^^^^^^^^^^^
+NameError: name 'KEY_LINEAR_X' is not defined
+

@@ -1,29 +1,33 @@
 # -------------------------------------------------------------------------------------------------------------------- #
 # File Name    : ROSFollowNode.py
 # Project Name : HealthcareRobotPyRT
-# Description  : ROS2 patient follow node
+# Description  : Patient follow logic node
 # -------------------------------------------------------------------------------------------------------------------- #
 
 import cv2
 
 from Commons import *
+from HealthcareRobot.HealthcareMessage import *
 
 from Perception.PatientDetector import CPatientDetector
 from HealthcareRobot.PatientDB import CPatientDB
 from Control.APFController import CAPFController
-from ROSIntegration.ROSCmdVelNode import CROSCmdVelNode
 
 
 class CROSFollowNode:
     """
-    환자 추적 노드
+    환자 추적 로직
 
     역할:
         1. frame에서 환자 검출
         2. marker_id 기반 환자 정보 조회
         3. depth 기반 실제 거리 계산
         4. APF 기반 cmd_vel 계산
-        5. /cmd_vel publish
+        5. 계산된 linear_x, angular_z 반환
+
+    주의:
+        이 클래스는 더 이상 /cmd_vel을 직접 publish하지 않는다.
+        실제 Stella B2 구동은 ControlCore -> MPStellaB2 경로로 수행한다.
     """
 
     def __init__(self):
@@ -34,9 +38,12 @@ class CROSFollowNode:
 
         self._apf_controller = CAPFController()
 
-        self._cmd_vel_node = CROSCmdVelNode()
-
-        self._last_patient_id = None # 마지막으로 추적한 환자 ID, 디버깅 및 평가용
+        self._last_patient_id = None
+        self._last_real_distance_cm = None
+        self._last_cmd_vel = {
+            KEY_LINEAR_X: 0.0,
+            KEY_ANGULAR_Z: 0.0,
+        }
 
         write_log("ROSFollowNode initialized.", self)
 
@@ -50,17 +57,19 @@ class CROSFollowNode:
             depth_map
     ):
         """
-        frame 처리 후 follow 수행
+        frame 처리 후 follow용 cmd_vel 계산
+
+        반환:
+            linear_x, angular_z
         """
 
         if frame_bgr is None:
-            return 0.0, 0.0
+            return self._return_stop("FOLLOW_NO_FRAME")
 
         patients = self._patient_detector.detect(frame_bgr)
 
         if len(patients) == 0:
-            self._cmd_vel_node.stop_robot()
-            return 0.0, 0.0
+            return self._return_stop("FOLLOW_NO_PATIENT")
 
         # ----------------------------------------------------------------------------------------------------------
         # 첫 번째 환자 사용
@@ -78,10 +87,9 @@ class CROSFollowNode:
         # Depth
         # ----------------------------------------------------------------------------------------------------------
 
-        depth_m = None # depth 값 저장할 변수
+        depth_m = None
 
         if depth_map is not None:
-
             try:
                 depth_m = float(depth_map[int(center_y), int(center_x)])
 
@@ -92,8 +100,7 @@ class CROSFollowNode:
                 depth_m = None
 
         if depth_m is None:
-            self._cmd_vel_node.stop_robot()
-            return 0.0, 0.0
+            return self._return_stop("FOLLOW_NO_DEPTH")
 
         # ----------------------------------------------------------------------------------------------------------
         # Real Distance
@@ -101,14 +108,15 @@ class CROSFollowNode:
 
         depth_cm = depth_m * 100.0
 
-        real_distance_cm = self._patient_db.calculate_range( # 수평 거리 계산
+        real_distance_cm = self._patient_db.calculate_range(
             marker_id,
             depth_cm
         )
 
         if real_distance_cm is None:
-            self._cmd_vel_node.stop_robot()
-            return 0.0, 0.0
+            return self._return_stop("FOLLOW_NO_REAL_DISTANCE")
+
+        self._last_real_distance_cm = real_distance_cm
 
         real_distance_m = real_distance_cm / 100.0
 
@@ -121,22 +129,10 @@ class CROSFollowNode:
             real_distance_m
         )
 
-        # ----------------------------------------------------------------------------------------------------------
-        # cmd_vel publish
-        # ----------------------------------------------------------------------------------------------------------
-
-        self._cmd_vel_node.publish_cmd_vel(
-            linear_x,
-            angular_z
-        )
-
-        # ----------------------------------------------------------------------------------------------------------
-        # distance publish
-        # ----------------------------------------------------------------------------------------------------------
-
-        self._cmd_vel_node.publish_target_distance(
-            real_distance_cm
-        )
+        self._last_cmd_vel = {
+            KEY_LINEAR_X: linear_x,
+            KEY_ANGULAR_Z: angular_z,
+        }
 
         # ----------------------------------------------------------------------------------------------------------
         # Log
@@ -158,6 +154,28 @@ class CROSFollowNode:
         return linear_x, angular_z
 
     # ==============================================================================================================
+    # Stop Return
+    # ==============================================================================================================
+
+    def _return_stop(self, reason: str = ""):
+        """
+        follow 실패/정지 상황에서 0 velocity 반환
+        """
+
+        self._last_cmd_vel = {
+            KEY_LINEAR_X: 0.0,
+            KEY_ANGULAR_Z: 0.0,
+        }
+
+        if reason:
+            write_log(
+                "FOLLOW STOP | reason=%s" % str(reason),
+                self
+            )
+
+        return 0.0, 0.0
+
+    # ==============================================================================================================
     # Draw
     # ==============================================================================================================
 
@@ -169,6 +187,9 @@ class CROSFollowNode:
         """
         detection 결과 시각화
         """
+
+        if frame_bgr is None:
+            return frame_bgr
 
         patients = self._patient_detector.detect(frame_bgr)
 
@@ -236,13 +257,22 @@ class CROSFollowNode:
     def stop(self):
         """
         follow 중지
+
+        실제 로봇 정지는 ControlCore -> MPStellaB2에서 처리한다.
+        여기서는 내부 상태만 0 velocity로 정리한다.
         """
 
-        self._cmd_vel_node.stop_robot()
+        self._return_stop("FOLLOW_STOP_REQUESTED")
 
     # ==============================================================================================================
     # Getter
     # ==============================================================================================================
 
-    def get_last_patient_id(self): # 디버깅 및 평가용으로 마지막으로 추적한 환자 ID 반환
+    def get_last_patient_id(self):
         return self._last_patient_id
+
+    def get_last_real_distance_cm(self):
+        return self._last_real_distance_cm
+
+    def get_last_cmd_vel(self):
+        return self._last_cmd_vel

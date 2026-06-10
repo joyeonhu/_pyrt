@@ -6,6 +6,10 @@
 
 import time
 
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+
 from Commons import *
 from HealthcareRobot.HealthcareMessage import *
 
@@ -19,6 +23,13 @@ from MobileRobot.TMRStellaB2 import (
 
 CMD_CONNECT = "CONNECT"
 CMD_DISCONNECT = "DISCONNECT"
+
+
+class CStellaB2CmdVelNode(Node):
+    def __init__(self, callback):
+        super().__init__("healthcare_stella_b2_node")
+        self.create_subscription(Twist, "/cmd_vel", callback, 10)
+        write_log("StellaB2CmdVelNode initialized. Subscribed to /cmd_vel", self)
 
 CMD_SET_VELOCITY_CONTROL = "SET_VELOCITY_CONTROL"
 CMD_MOVE_STOP = "MOVE_STOP"
@@ -41,9 +52,23 @@ def proc_stella_b2(command_pipe, feedback_queue, feedback_queue_bk=None):
     """
 
     robot = None
+    cmd_vel_node = None
 
     is_running = True
     is_connected = False
+
+    def on_cmd_vel(msg: Twist):
+
+        if robot is None:
+            return
+
+        if not robot.is_connected():
+            return
+
+        robot.set_velocity_control(
+            float(msg.linear.x),
+            float(msg.angular.z)
+        )
 
     write_log("MPStellaB2 process routine started.")
 
@@ -66,6 +91,12 @@ def proc_stella_b2(command_pipe, feedback_queue, feedback_queue_bk=None):
                     if robot is None:
                         robot = CTMRStellaB2()
 
+                    if not rclpy.ok():
+                        rclpy.init()
+
+                    if cmd_vel_node is None:
+                        cmd_vel_node = CStellaB2CmdVelNode(on_cmd_vel)
+
                     feedback_queue.put(
                         make_status_message(
                             "STELLA_B2_CREATED",
@@ -79,7 +110,7 @@ def proc_stella_b2(command_pipe, feedback_queue, feedback_queue_bk=None):
                     if robot is None:
                         robot = CTMRStellaB2()
 
-                    port = data.get("port", None)
+                    port = data.get(KEY_PORT, None)
 
                     robot.connect(port)
 
@@ -215,14 +246,26 @@ def proc_stella_b2(command_pipe, feedback_queue, feedback_queue_bk=None):
                         )
                     )
 
+
                 elif command == CMD_EXIT:
 
                     if robot is not None:
-                        robot.move_stop(EnumStellaB2Stop.MOTOR_HOLD_DECC)
+
+                        if robot.is_connected():
+                            robot.move_stop(
+
+                                EnumStellaB2Stop.MOTOR_HOLD_DECC
+
+                            )
+
                         robot.release()
 
                     is_connected = False
+
                     is_running = False
+
+            if cmd_vel_node is not None:
+                rclpy.spin_once(cmd_vel_node, timeout_sec=0.0)
 
             time.sleep(0.001)
 
@@ -244,6 +287,12 @@ def proc_stella_b2(command_pipe, feedback_queue, feedback_queue_bk=None):
                 if robot.is_connected():
                     robot.move_stop(EnumStellaB2Stop.MOTOR_HOLD_DECC)
                 robot.release()
+
+            if cmd_vel_node is not None:
+                cmd_vel_node.destroy_node()
+
+            if rclpy.ok():
+                rclpy.shutdown()
 
         except Exception:
             ErrorHandler().report()
